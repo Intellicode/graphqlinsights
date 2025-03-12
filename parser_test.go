@@ -56,6 +56,114 @@ func TestParseQuery(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Query with field directive",
+			input: `query GetUser { user(id: "123") @cache { name } }`,
+			want: &Node{
+				Type: NodeQuery,
+				Name: "GetUser",
+				SelectionSet: []*Node{
+					{
+						Type:      NodeField,
+						Name:      "user",
+						Arguments: map[string]string{"id": "123"},
+						Directives: []*Node{
+							{
+								Type: NodeDirective,
+								Name: "cache",
+							},
+						},
+						SelectionSet: []*Node{
+							{Type: NodeField, Name: "name"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "Query with directive with arguments",
+			input: `query GetUser { user(id: "123") @cache(ttl: "300") { name } }`,
+			want: &Node{
+				Type: NodeQuery,
+				Name: "GetUser",
+				SelectionSet: []*Node{
+					{
+						Type:      NodeField,
+						Name:      "user",
+						Arguments: map[string]string{"id": "123"},
+						Directives: []*Node{
+							{
+								Type:      NodeDirective,
+								Name:      "cache",
+								Arguments: map[string]string{"ttl": "300"},
+							},
+						},
+						SelectionSet: []*Node{
+							{Type: NodeField, Name: "name"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "Query with top-level directive",
+			input: `query GetUser @persist { user(id: "123") { name } }`,
+			want: &Node{
+				Type: NodeQuery,
+				Name: "GetUser",
+				Directives: []*Node{
+					{
+						Type: NodeDirective,
+						Name: "persist",
+					},
+				},
+				SelectionSet: []*Node{
+					{
+						Type:      NodeField,
+						Name:      "user",
+						Arguments: map[string]string{"id": "123"},
+						SelectionSet: []*Node{
+							{Type: NodeField, Name: "name"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "Query with multiple directives",
+			input: `query GetUser @persist @trace { user(id: "123") @cache(ttl: "300") { name } }`,
+			want: &Node{
+				Type: NodeQuery,
+				Name: "GetUser",
+				Directives: []*Node{
+					{
+						Type: NodeDirective,
+						Name: "persist",
+					},
+					{
+						Type: NodeDirective,
+						Name: "trace",
+					},
+				},
+				SelectionSet: []*Node{
+					{
+						Type:      NodeField,
+						Name:      "user",
+						Arguments: map[string]string{"id": "123"},
+						Directives: []*Node{
+							{
+								Type:      NodeDirective,
+								Name:      "cache",
+								Arguments: map[string]string{"ttl": "300"},
+							},
+						},
+						SelectionSet: []*Node{
+							{Type: NodeField, Name: "name"},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -114,6 +222,18 @@ func detailedCompare(got, want *Node) string {
 		}
 	}
 
+	// Compare directives
+	if len(got.Directives) != len(want.Directives) {
+		result += fmt.Sprintf("Directives length mismatch: got %d, want %d\n", len(got.Directives), len(want.Directives))
+	} else {
+		for i := range got.Directives {
+			directiveResult := detailedCompare(got.Directives[i], want.Directives[i])
+			if directiveResult != "" {
+				result += fmt.Sprintf("Directive[%d] differences:\n%s", i, directiveResult)
+			}
+		}
+	}
+
 	// Compare selection sets
 	if len(got.SelectionSet) != len(want.SelectionSet) {
 		result += fmt.Sprintf("SelectionSet length mismatch: got %d, want %d\n", len(got.SelectionSet), len(want.SelectionSet))
@@ -154,6 +274,16 @@ func compareNodes(got, want *Node) bool {
 	for k, v := range got.Arguments {
 		wantVal, ok := want.Arguments[k]
 		if !ok || wantVal != v {
+			return false
+		}
+	}
+
+	// Compare directives
+	if len(got.Directives) != len(want.Directives) {
+		return false
+	}
+	for i := range got.Directives {
+		if !compareNodes(got.Directives[i], want.Directives[i]) {
 			return false
 		}
 	}

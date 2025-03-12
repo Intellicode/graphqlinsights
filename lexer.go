@@ -13,6 +13,7 @@ const (
 	TokenParenL TokenType = "("
 	TokenParenR TokenType = ")"
 	TokenColon  TokenType = ":"
+	TokenAt     TokenType = "@" // New token for @ symbol
 	TokenString TokenType = "STRING"
 	TokenIdent  TokenType = "IDENT"
 	TokenEOF    TokenType = "EOF"
@@ -73,6 +74,9 @@ func (l *Lexer) NextToken() Token {
 	case ':':
 		l.readChar()
 		return Token{TokenColon, ":"}
+	case '@': // Handle @ symbol for directives
+		l.readChar()
+		return Token{TokenAt, "@"}
 	case '"':
 		l.readChar()
 		start := l.position - 1
