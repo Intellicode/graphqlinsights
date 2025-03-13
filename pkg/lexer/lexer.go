@@ -1,29 +1,33 @@
-package main
+// Package lexer provides tokenization for GraphQL queries
+package lexer
 
 import (
-	"fmt"
 	"unicode"
 )
 
+// TokenType represents the type of a token in the GraphQL query
 type TokenType string
 
+// Token types for GraphQL query lexing
 const (
 	TokenBraceL TokenType = "{"
 	TokenBraceR TokenType = "}"
 	TokenParenL TokenType = "("
 	TokenParenR TokenType = ")"
 	TokenColon  TokenType = ":"
-	TokenAt     TokenType = "@" // New token for @ symbol
+	TokenAt     TokenType = "@" // Token for @ symbol used in directives
 	TokenString TokenType = "STRING"
 	TokenIdent  TokenType = "IDENT"
 	TokenEOF    TokenType = "EOF"
 )
 
+// Token represents a lexical token in the GraphQL query
 type Token struct {
 	Type  TokenType
 	Value string
 }
 
+// Helper functions for character classification
 func isLetter(ch rune) bool {
 	return unicode.IsLetter(ch) || ch == '_'
 }
@@ -32,18 +36,21 @@ func isDigit(ch rune) bool {
 	return unicode.IsDigit(ch)
 }
 
+// Lexer represents a lexical analyzer for GraphQL queries
 type Lexer struct {
 	input       string
 	position    int
 	currentChar rune
 }
 
+// NewLexer creates a new lexer for the given input string
 func NewLexer(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
 }
 
+// readChar reads the next character and advances the position in the input string
 func (l *Lexer) readChar() {
 	if l.position >= len(l.input) {
 		l.currentChar = 0
@@ -53,6 +60,7 @@ func (l *Lexer) readChar() {
 	l.position++
 }
 
+// NextToken returns the next token from the input
 func (l *Lexer) NextToken() Token {
 	for unicode.IsSpace(l.currentChar) {
 		l.readChar()
@@ -98,15 +106,4 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 	return Token{TokenEOF, ""}
-}
-
-func LexerMain() {
-	lexer := NewLexer(`query GetUser { user(id: "123") { name } }`)
-	for {
-		tok := lexer.NextToken()
-		fmt.Printf("Token: %+v\n", tok)
-		if tok.Type == TokenEOF {
-			break
-		}
-	}
 }
