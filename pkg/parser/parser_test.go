@@ -168,14 +168,14 @@ func TestParseQuery(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			log.Printf("Running test: %s", tt.name)
 			lex := lexer.NewLexer(tt.input)
 			parser := &Parser{lexer: lex, curr: lex.NextToken()}
 			parsedQuery := parser.ParseQuery()
-			
+
 			// Use our custom compareNodes function to compare node structures
 			if !compareNodes(parsedQuery, tt.want) {
 				t.Errorf("Node structures not equal")
@@ -196,9 +196,9 @@ func detailedCompare(got, want *Node) string {
 	if want == nil {
 		return "Want node is nil, got is not nil"
 	}
-	
+
 	result := ""
-	
+
 	// Compare basic properties
 	if got.Type != want.Type {
 		result += fmt.Sprintf("Type mismatch: got %s, want %s\n", got.Type, want.Type)
@@ -206,7 +206,7 @@ func detailedCompare(got, want *Node) string {
 	if got.Name != want.Name {
 		result += fmt.Sprintf("Name mismatch: got %s, want %s\n", got.Name, want.Name)
 	}
-	
+
 	// Compare arguments
 	if len(got.Arguments) != len(want.Arguments) {
 		result += fmt.Sprintf("Arguments length mismatch: got %d, want %d\n", len(got.Arguments), len(want.Arguments))
@@ -224,7 +224,7 @@ func detailedCompare(got, want *Node) string {
 			}
 		}
 	}
-	
+
 	// Compare directives
 	if len(got.Directives) != len(want.Directives) {
 		result += fmt.Sprintf("Directives length mismatch: got %d, want %d\n", len(got.Directives), len(want.Directives))
@@ -236,7 +236,7 @@ func detailedCompare(got, want *Node) string {
 			}
 		}
 	}
-	
+
 	// Compare selection sets
 	if len(got.SelectionSet) != len(want.SelectionSet) {
 		result += fmt.Sprintf("SelectionSet length mismatch: got %d, want %d\n", len(got.SelectionSet), len(want.SelectionSet))
@@ -248,7 +248,7 @@ func detailedCompare(got, want *Node) string {
 			}
 		}
 	}
-	
+
 	if result == "" {
 		return "Nodes are structurally equivalent but have different memory addresses"
 	}
@@ -264,12 +264,12 @@ func compareNodes(got, want *Node) bool {
 	if got == nil || want == nil {
 		return false
 	}
-	
+
 	// Compare basic properties
 	if got.Type != want.Type || got.Name != want.Name {
 		return false
 	}
-	
+
 	// Compare arguments
 	if len(got.Arguments) != len(want.Arguments) {
 		return false
@@ -280,7 +280,7 @@ func compareNodes(got, want *Node) bool {
 			return false
 		}
 	}
-	
+
 	// Compare directives
 	if len(got.Directives) != len(want.Directives) {
 		return false
@@ -290,7 +290,7 @@ func compareNodes(got, want *Node) bool {
 			return false
 		}
 	}
-	
+
 	// Compare selection sets
 	if len(got.SelectionSet) != len(want.SelectionSet) {
 		return false
